@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"os/exec"
 	"bytes"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -35,13 +35,6 @@ func DecomposeGit() (string, string) {
 	// split url into owner and repository
 	url := strings.TrimSuffix(matches[0], ".git")
 	var owner, repo string
-	if strings.HasPrefix(url, "https://") {
-		splits := strings.Split(url, "/")
-		owner, repo = splits[len(splits)-2], splits[len(splits)-1]
-	} else if strings.HasPrefix(url, "git@github.com:") {
-		url = strings.TrimPrefix(url, "git@github.com:")
-		splits := strings.Split(url, "/")
-		owner, repo = splits[0], splits[1]
-	}
+	owner, repo = DecomposeURL(url)
 	return owner, repo
 }

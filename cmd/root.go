@@ -26,41 +26,42 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Error analyzing: %v", err)
 		}
-		fmt.Println("%------------LANGUAGE COMPOSITION------------%")
-		for language, bytes := range stats.Languages {
-			fmt.Println(language, "with bytes: ", bytes)
+		listIssues, _ := cmd.Flags().GetBool("list-issues")
+		listPRs, _ := cmd.Flags().GetBool("list-prs")
+		listBranches, _ := cmd.Flags().GetBool("list-branches")
+		commitHistory, _ := cmd.Flags().GetBool("commit-history")
+		if err != nil {
+			log.Fatalf("Error analyzing: %v", err)
 		}
-		fmt.Println("%------------COMMIT HISTORY------------%")
-		for _, commit := range stats.Commits {
-			fmt.Printf("Author: %s\n", commit.GetAuthor().GetLogin())
-			fmt.Printf("Date: %s\n", commit.Commit.GetAuthor().GetDate())
-			fmt.Printf("Message: %s\n", commit.Commit.GetMessage())
-			fmt.Println("-----")
+		if listIssues {
+			for _, issue := range stats.Issues {
+				fmt.Printf("Issue: %s\n", issue.GetTitle())
+				fmt.Printf("Issue State: %s\n", issue.GetState())
+				fmt.Printf("Issue Author: %s\n", issue.GetUser().GetLogin())
+				fmt.Println("-----")
+			}
+		} else if listPRs {
+			for _, pr := range stats.PullRequests {
+				fmt.Printf("Issue: %s\n", pr.GetTitle())
+				fmt.Printf("Issue State: %s\n", pr.GetState())
+				fmt.Printf("Issue Author: %s\n", pr.GetUser().GetLogin())
+				fmt.Println("-----")
+			}
+		} else if listBranches {
+			for _, branch := range stats.Branches {
+				fmt.Printf("Branch Name: %s\n", branch.GetName())
+				fmt.Println("-----")
+			}
+		} else if commitHistory {
+			for _, commit := range stats.Commits {
+				fmt.Printf("Author: %s\n", commit.GetAuthor().GetLogin())
+				fmt.Printf("Date: %s\n", commit.Commit.GetAuthor().GetDate())
+				fmt.Printf("Message: %s\n", commit.Commit.GetMessage())
+				fmt.Println("-----")
+			}
+		} else {
+			utils.PrintRepoStats(stats)
 		}
-		fmt.Println("%------------ISSUE STATISTICS------------%")
-		for _, issue := range stats.Issues {
-			fmt.Printf("Issue: %s\n", issue.GetTitle())
-			fmt.Printf("Issue State: %s\n", issue.GetState())
-			fmt.Printf("Issue Author: %s\n", issue.GetUser().GetLogin())
-			fmt.Println("-----")
-		}
-		fmt.Println("%------------PULL REQUEST STATISTICS------------%")
-		for _, pr := range stats.PullRequests {
-			fmt.Printf("Issue: %s\n", pr.GetTitle())
-			fmt.Printf("Issue State: %s\n", pr.GetState())
-			fmt.Printf("Issue Author: %s\n", pr.GetUser().GetLogin())
-			fmt.Println("-----")
-		}
-		fmt.Println("%------------BRANCH STATISTICS------------%")
-		for _, branch := range stats.Branches {
-			fmt.Printf("Branch Name: %s\n", branch.GetName())
-			fmt.Println("-----")
-		}
-		fmt.Println("%------------COMMUNITY STATISTICS------------%")
-		fmt.Printf("Number of stars: %d\n", stats.Stars)
-		fmt.Printf("Number of forks: %d\n", stats.Forks)
-		fmt.Printf("Number of watchers: %d\n", stats.Watchers)
-		fmt.Println("-----")
 	},
 }
 
@@ -74,13 +75,9 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.go-gh-analyzer.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().Bool("list-issues", false, "List all issues in a repository")
+	rootCmd.PersistentFlags().Bool("list-prs", false, "List all the pull requests in a repository")
+	rootCmd.PersistentFlags().Bool("list-branches", false, "List all the branches in a repository")
+	rootCmd.PersistentFlags().Bool("commit-history", false, "List the commit history of a repository")
 }

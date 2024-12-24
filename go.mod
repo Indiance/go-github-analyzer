@@ -1,6 +1,8 @@
 module github.com/Indiance/go-gh-analyzer
 
-go 1.20
+go 1.21
+
+toolchain go1.23.4
 
 require (
 	github.com/google/go-github/v62 v62.0.0 // direct

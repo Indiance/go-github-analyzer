@@ -8,15 +8,21 @@ import (
 	"github.com/google/go-github/v62/github"
 )
 
+type LanguageStats struct {
+	Language   string
+	Percentage float64
+}
+
 type RepoStats struct {
-	Languages    map[string]int
-	Commits      []*github.RepositoryCommit
-	Issues       []*github.Issue
-	PullRequests []*github.Issue
-	Branches     []*github.Branch
-	Stars        int
-	Forks        int
-	Watchers     int
+	Languages          map[string]int
+	LanguagePercentage []LanguageStats
+	Commits            []*github.RepositoryCommit
+	Issues             []*github.Issue
+	PullRequests       []*github.Issue
+	Branches           []*github.Branch
+	Stars              int
+	Forks              int
+	Watchers           int
 }
 
 func RepoAnalyzer(owner, repo string) (*RepoStats, error) {
@@ -43,6 +49,22 @@ func RepoAnalyzer(owner, repo string) (*RepoStats, error) {
 		return nil, fmt.Errorf("error(s) occurred: %v %v %v %v %v", langErr, commitErr, issueErr, branchErr, repoErr)
 	}
 
+	// Calculate total number of bytes for all languages
+	var totalBytes int
+	for _, bytes := range languages {
+		totalBytes += bytes
+	}
+
+	// Calculate the percentage for each language
+	var languagePercents []LanguageStats
+	for lang, bytes := range languages {
+		percent := (float64(bytes) / float64(totalBytes)) * 100
+		languagePercents = append(languagePercents, LanguageStats{
+			Language:   lang,
+			Percentage: percent,
+		})
+	}
+
 	// Process the fetched issues to separate Issues and Pull Requests
 	var onlyIssues, onlyPRs []*github.Issue
 	for _, issue := range issues {
@@ -55,14 +77,15 @@ func RepoAnalyzer(owner, repo string) (*RepoStats, error) {
 
 	// Construct and return the RepoStats struct
 	stats := &RepoStats{
-		Languages:    languages,
-		Commits:      commits,
-		Issues:       onlyIssues,
-		PullRequests: onlyPRs,
-		Branches:     branches,
-		Stars:        repoDetails.GetStargazersCount(),
-		Forks:        repoDetails.GetForksCount(),
-		Watchers:     repoDetails.GetWatchersCount(),
+		Languages:          languages,
+		LanguagePercentage: languagePercents,
+		Commits:            commits,
+		Issues:             onlyIssues,
+		PullRequests:       onlyPRs,
+		Branches:           branches,
+		Stars:              repoDetails.GetStargazersCount(),
+		Forks:              repoDetails.GetForksCount(),
+		Watchers:           repoDetails.GetWatchersCount(),
 	}
 	return stats, nil
 }
